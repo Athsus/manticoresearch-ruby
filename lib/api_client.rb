@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'json'
 require 'uri'
 require_relative 'configuration'
@@ -20,15 +22,39 @@ module Manticoresearch
       @default_headers[options[:header_name]] = options[:header_value]
     end
 
-    def close
-      # close the rest client
-    end
-
     def call_api(resource_path, method, options = {})
       headers = prepare_headers(options[:header_params])
       full_url = build_full_url(resource_path, options[:path_params])
-      response = @rest.request(method, full_url, options[:query_params], headers, options[:body])
+      response = RESTClientObject.new(@configuration).request(
+        method, full_url, query_params: options[:query_params], headers: headers, body: options[:body]
+      )
+      if response.status < 200 || response.status >= 300
+        error_message = extract_error_message(response)
+        raise Manticoresearch::ApiException.new(error_message, response.status)
+      end
       deserialize(response.data, options[:response_type])
+    end
+
+    # Select the appropriate Accept header
+    def select_header_accept(accepts)
+      return nil if accepts.empty?
+
+      accepts.each do |accept|
+        return accept if accept.downcase == 'application/json'
+      end
+
+      accepts.first
+    end
+
+    # Select the appropriate Content-Type header
+    def select_header_content_type(content_types)
+      return 'application/json' if content_types.empty?
+
+      content_types.each do |content_type|
+        return content_type if content_type.downcase == 'application/json'
+      end
+
+      content_types.first
     end
 
     private
@@ -68,31 +94,9 @@ module Manticoresearch
       call_api(url, 'DELETE', nil, nil, headers, body)
     end
 
-    # 选择适当的 Accept 头
-    def select_header_accept(accepts)
-      return nil if accepts.empty?
-
-      accepts.each do |accept|
-        return accept if accept.downcase == 'application/json'
-      end
-
-      accepts.first
-    end
-
-    # 选择适当的 Content-Type 头
-    def select_header_content_type(content_types)
-      return 'application/json' if content_types.empty?
-
-      content_types.each do |content_type|
-        return content_type if content_type.downcase == 'application/json'
-      end
-
-      content_types.first
-    end
-
     def update_params_for_auth(headers, querys, auth_settings, request_auth = nil)
-      # 此方法将根据身份验证设置更新 headers 和查询参数
-      # 由于具体的身份验证逻辑未提供，此处留空或根据需要实现
+      # This method will update headers and query parameters based on authentication settings
+      # Since specific authentication logic is not provided, this method can be left empty or implemented as needed
     end
 
     def sanitize_for_serialization(obj)
@@ -118,6 +122,15 @@ module Manticoresearch
 
     def files_parameters(files = nil)
       files ? files.map { |k, v| [k, v] } : []
+    end
+
+    def extract_error_message(response)
+      # 尝试从响应中提取错误消息
+      parsed_body = JSON.parse(response.data)
+      parsed_body['error'] || "HTTP #{response.status}: #{response.reason}"
+    rescue JSON::ParserError
+      # 如果无法解析 JSON，则返回响应中的原始消息
+      "HTTP #{response.status}: #{response.reason}"
     end
   end
 end

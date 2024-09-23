@@ -1,15 +1,18 @@
+# frozen_string_literal: true
+
 require 'httparty'
 require 'json'
 require 'uri'
 
+require_relative 'exceptions/api_exception'
+
 module Manticoresearch
   # RESTResponse class for handling REST API responses
   class RESTResponse
-    attr_accessor :status, :reason, :data, :headers
+    attr_accessor :status, :data, :headers
 
     def initialize(response)
       @status = response.code
-      @reason = response.message
       @data = response.body
       @headers = response.headers
     end
@@ -19,7 +22,8 @@ module Manticoresearch
     end
 
     def getheader(name, default_value = nil)
-      @headers[name] || default_value
+      normalized_headers = @headers.transform_keys(&:downcase)
+      normalized_headers[name.downcase] || default_value
     end
   end
 
@@ -28,49 +32,51 @@ module Manticoresearch
     # Initialize with a configuration
     def initialize(configuration)
       @configuration = configuration
-      uri = URI.parse(@configuration.host)
+      host = @configuration.host
+
+      host = "http://#{host}" unless host =~ %r{\A\w+://}
+
+      uri = URI.parse(host)
       host = uri.host || 'localhost'
-      port = uri.port || 9208
+      port = uri.port || 9308
       scheme = uri.scheme || 'http'
 
       @base_uri = "#{scheme}://#{host}:#{port}"
     end
 
-    def request(method, url, query_params = nil, headers = nil, body = nil)
-      # 设置 headers 和参数
-      headers ||= {}
-      full_url = @base_uri + url
+    def request(method, url, query_params: nil, headers: {}, body: nil)
+      full_url = URI.join(@base_uri, url).to_s
 
       options = {
         headers: headers
       }
 
-      # 添加查询参数
       options[:query] = query_params if query_params && !query_params.empty?
 
-      # 设置请求体
       if body
         options[:body] = body.is_a?(String) ? body : body.to_json
         headers['Content-Type'] ||= 'application/json'
       end
 
-      # 发送请求
       response = HTTParty.send(method.downcase, full_url, options)
 
       rest_response = RESTResponse.new(response)
 
-      # 输出调试信息
-      puts 'REST Response:'
-      puts "Status: #{rest_response.status}"
-      puts "Reason: #{rest_response.reason}"
-      puts "Data: #{rest_response.data}"
-      puts "Headers: #{rest_response.headers}"
-
-      raise ApiException, response if rest_response.status < 200 || rest_response.status >= 300
-
-      puts 'success'
+      if rest_response.status < 200 || rest_response.status >= 300
+        error_message = extract_error_message(response)
+        raise ApiException.new(error_message, rest_response.status)
+      end
 
       rest_response
+    end
+
+    private
+
+    def extract_error_message(response)
+      parsed_body = JSON.parse(response.body)
+      parsed_body['error'] || "HTTP #{response.code}: #{response.message}"
+    rescue JSON::ParserError
+      "HTTP #{response.code}: #{response.message}"
     end
   end
 end

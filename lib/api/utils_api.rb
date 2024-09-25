@@ -1,5 +1,7 @@
+# frozen_string_literal: true
+
 require_relative '../api_client'
-require_relative '../exceptions'
+require_relative '../exceptions/api_exception'
 require 'uri'
 require 'json'
 
@@ -23,18 +25,18 @@ module Manticoresearch
     # @return [JSON, Array<JSON>] The response from the API.
     def sql_with_http_info(body, raw_response: nil)
       # Ensure the 'body' parameter is provided
-      raise ApiValueError.new("Missing the required parameter `body` when calling `sql`") unless body
+      raise ApiValueError, 'Missing the required parameter `body` when calling `sql`' unless body
 
       # Build query parameters
       query_params = {}
-      query_params["raw_response"] = raw_response.to_s if raw_response
+      query_params['raw_response'] = raw_response.to_s unless raw_response.nil?
 
       # Build body parameters based on 'raw_response'
-      body_params = ""
+      body_params = ''
       if raw_response == false
-        body_params = "query="
+        body_params = 'query='
       elsif raw_response.nil? || raw_response == true
-        body_params = "mode=raw&query="
+        body_params = 'mode=raw&query='
       end
 
       # URL-encode the 'body' parameter and append it to 'body_params'
@@ -42,16 +44,16 @@ module Manticoresearch
 
       # Set header parameters
       header_params = {}
-      header_accept = @api_client.select_header_accept(["application/json"]) || "application/json"
-      header_params["Accept"] = header_accept
+      header_accept = @api_client.select_header_accept(['application/json']) || 'application/json'
+      header_params['Accept'] = header_accept
 
-      header_content_type = @api_client.select_header_content_type(["text/plain"]) || "text/plain"
-      header_params["Content-Type"] = header_content_type
+      header_content_type = @api_client.select_header_content_type(['text/plain']) || 'text/plain'
+      header_params['Content-Type'] = header_content_type
 
       # Call the API, passing the URL-encoded body
       response = @api_client.call_api(
-        "/sql",
-        "POST",
+        '/sql',
+        'POST',
         query_params: query_params,
         header_params: header_params,
         body: body_params
@@ -61,7 +63,7 @@ module Manticoresearch
       puts "Response: #{response}"
 
       # Control the return format based on 'raw_response'
-      return raw_response == false ? [response] : response
+      raw_response == false ? [response] : response
     end
   end
 end

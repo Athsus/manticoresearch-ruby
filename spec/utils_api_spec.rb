@@ -1,9 +1,10 @@
+# frozen_string_literal: true
+
 # spec/utils_api_spec.rb
 
 require 'spec_helper'
-require_relative '../lib/manticoresearch/utils_api'
-require_relative '../lib/manticoresearch/api_client'
-require_relative '../lib/manticoresearch/exceptions'
+require_relative '../lib/api/utils_api'
+require_relative '../lib/api_client'
 
 RSpec.describe Manticoresearch::UtilsApi do
   let(:api_client) { instance_double(Manticoresearch::ApiClient) }
@@ -22,14 +23,16 @@ RSpec.describe Manticoresearch::UtilsApi do
     let(:encoded_body) { 'query=SELECT%20*%20FROM%20index' }
 
     before do
-      allow(api_client).to receive(:select_header_accept).and_return('application/json')
-      allow(api_client).to receive(:select_header_content_type).and_return('text/plain')
-      allow(api_client).to receive(:call_api).and_return(response)
+      allow(api_client).to receive_messages(select_header_accept: 'application/json',
+                                            select_header_content_type: 'text/plain', call_api: response)
     end
 
     context 'when body is missing' do
       it 'raises an ApiValueError' do
-        expect { utils_api.sql_with_http_info(nil) }.to raise_error(Manticoresearch::ApiValueError, 'Missing the required parameter `body` when calling `sql`')
+        expect do
+          utils_api.sql_with_http_info(nil)
+        end.to raise_error(Manticoresearch::ApiValueError,
+                           'Missing the required parameter `body` when calling `sql`')
       end
     end
 
@@ -40,7 +43,7 @@ RSpec.describe Manticoresearch::UtilsApi do
           'POST',
           query_params: {},
           header_params: { 'Accept' => 'application/json', 'Content-Type' => 'text/plain' },
-          body: 'mode=raw&query=SELECT%20*%20FROM%20index'
+          body: 'mode=raw&query=SELECT+*+FROM+index'
         ).and_return(response)
 
         result = utils_api.sql_with_http_info(body)
@@ -55,7 +58,7 @@ RSpec.describe Manticoresearch::UtilsApi do
           'POST',
           query_params: { 'raw_response' => 'true' },
           header_params: { 'Accept' => 'application/json', 'Content-Type' => 'text/plain' },
-          body: 'mode=raw&query=SELECT%20*%20FROM%20index'
+          body: 'mode=raw&query=SELECT+*+FROM+index'
         ).and_return(response)
 
         result = utils_api.sql_with_http_info(body, raw_response: true)
@@ -70,10 +73,10 @@ RSpec.describe Manticoresearch::UtilsApi do
           'POST',
           query_params: { 'raw_response' => 'false' },
           header_params: { 'Accept' => 'application/json', 'Content-Type' => 'text/plain' },
-          body: 'query=SELECT%20*%20FROM%20index'
+          body: 'query=SELECT+*+FROM+index'
         ).and_return(response)
 
-        result = utils_api.sql_with_http_info(body, raw_response: false)
+        result = utils_api.sql_with_http_info('SELECT * FROM index', raw_response: false)
         expect(result).to eq([response])
       end
     end
@@ -88,7 +91,7 @@ RSpec.describe Manticoresearch::UtilsApi do
           'POST',
           query_params: {},
           header_params: { 'Accept' => 'application/json', 'Content-Type' => 'text/plain' },
-          body: 'mode=raw&query=SHOW%20TABLES'
+          body: 'mode=raw&query=SHOW+TABLES'
         ).and_return(response)
 
         result = utils_api.sql_with_http_info(body)

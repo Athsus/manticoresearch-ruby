@@ -16,7 +16,7 @@ RSpec.describe Manticoresearch::IndexApi do
     allow(api_client).to receive(:select_header_accept).with(['application/json']).and_return('application/json')
     allow(api_client).to receive(:select_header_content_type).with(['application/json']).and_return('application/json')
   end
-  
+
   describe '#bulk' do
     it 'calls the API client with the correct parameters' do
       body = { 'actions' => [{ 'index' => { '_index' => 'test', '_id' => '1', 'data' => 'test data' } }] }

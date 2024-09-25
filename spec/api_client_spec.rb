@@ -93,7 +93,7 @@ RSpec.describe Manticoresearch::ApiClient do
 
       result = api_client_default.call_api(resource_path, method, options)
 
-      expect(result).to eq(rest_response.data)
+      expect(result).to eq(JSON.parse(rest_response.data))
     end
 
     context 'when the API call fails with an error' do

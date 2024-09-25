@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Gemfile
 source 'https://rubygems.org'
 
@@ -9,6 +11,7 @@ end
 
 group :test do
   gem 'rspec'
+  gem 'webmock'
 end
 
 gem 'httparty'

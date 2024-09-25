@@ -1,5 +1,7 @@
+# frozen_string_literal: true
+
 require_relative '../api_client'
-require_relative '../exceptions'
+require_relative '../exceptions/api_exception'
 require 'json'
 
 module Manticoresearch
@@ -23,7 +25,7 @@ module Manticoresearch
     # @return [JSON] The response from the API.
     def bulk_with_http_info(body, async_req: nil)
       # Ensure the 'body' parameter is provided
-      raise ApiValueError.new('Missing the required parameter `body` when calling `bulk`') unless body
+      raise ApiValueError, 'Missing the required parameter `body` when calling `bulk`' unless body
 
       # Set header parameters
       header_params = {}
@@ -37,14 +39,12 @@ module Manticoresearch
       json_body = body.to_json
 
       # Call the API
-      response = @api_client.call_api(
+      @api_client.call_api(
         '/bulk',
         'POST',
         header_params: header_params,
         body: json_body
       )
-
-      return response
     end
 
     # Deletes a document.
@@ -61,7 +61,9 @@ module Manticoresearch
     # @return [JSON] The response from the API.
     def delete_with_http_info(delete_document_request, async_req: nil)
       # Ensure the required parameter is provided
-      raise ApiValueError.new('Missing the required parameter `delete_document_request` when calling `delete`') unless delete_document_request
+      unless delete_document_request
+        raise ApiValueError, 'Missing the required parameter `delete_document_request` when calling `delete`'
+      end
 
       # Set header parameters
       header_params = {}
@@ -75,14 +77,12 @@ module Manticoresearch
       json_delete_document_request = delete_document_request.to_json
 
       # Call the API
-      response = @api_client.call_api(
+      @api_client.call_api(
         '/delete',
         'POST',
         header_params: header_params,
         body: json_delete_document_request
       )
-
-      return response
     end
 
     # Inserts a document.
@@ -99,7 +99,9 @@ module Manticoresearch
     # @return [JSON] The response from the API.
     def insert_with_http_info(insert_document_request, async_req: nil)
       # Ensure the required parameter is provided
-      raise ApiValueError.new('Missing the required parameter `insert_document_request` when calling `insert`') unless insert_document_request
+      unless insert_document_request
+        raise ApiValueError, 'Missing the required parameter `insert_document_request` when calling `insert`'
+      end
 
       # Set header parameters
       header_params = {}
@@ -113,14 +115,12 @@ module Manticoresearch
       json_insert_document_request = insert_document_request.to_json
 
       # Call the API
-      response = @api_client.call_api(
+      @api_client.call_api(
         '/insert',
         'POST',
         header_params: header_params,
         body: json_insert_document_request
       )
-
-      return response
     end
 
     # Replaces a document.
@@ -137,7 +137,9 @@ module Manticoresearch
     # @return [JSON] The response from the API.
     def replace_with_http_info(insert_document_request, async_req: nil)
       # Ensure the required parameter is provided
-      raise ApiValueError.new('Missing the required parameter `insert_document_request` when calling `replace`') unless insert_document_request
+      unless insert_document_request
+        raise ApiValueError, 'Missing the required parameter `insert_document_request` when calling `replace`'
+      end
 
       # Set header parameters
       header_params = {}
@@ -151,14 +153,12 @@ module Manticoresearch
       json_insert_document_request = insert_document_request.to_json
 
       # Call the API
-      response = @api_client.call_api(
+      @api_client.call_api(
         '/replace',
         'POST',
         header_params: header_params,
         body: json_insert_document_request
       )
-
-      return response
     end
 
     # Updates a document.
@@ -175,7 +175,9 @@ module Manticoresearch
     # @return [JSON] The response from the API.
     def update_with_http_info(update_document_request, async_req: nil)
       # Ensure the required parameter is provided
-      raise ApiValueError.new('Missing the required parameter `update_document_request` when calling `update`') unless update_document_request
+      unless update_document_request
+        raise ApiValueError, 'Missing the required parameter `update_document_request` when calling `update`'
+      end
 
       # Set header parameters
       header_params = {}
@@ -189,14 +191,12 @@ module Manticoresearch
       json_update_document_request = update_document_request.to_json
 
       # Call the API
-      response = @api_client.call_api(
+      @api_client.call_api(
         '/update',
         'POST',
         header_params: header_params,
         body: json_update_document_request
       )
-
-      return response
     end
 
     # Partially updates a document.
@@ -217,9 +217,11 @@ module Manticoresearch
     # @return [JSON] The response from the API.
     def update_partial_with_http_info(index, id, replace_document_request, async_req: nil)
       # Ensure the required parameters are provided
-      raise ApiValueError.new('Missing the required parameter `index` when calling `update_partial`') unless index
-      raise ApiValueError.new('Missing the required parameter `id` when calling `update_partial`') unless id
-      raise ApiValueError.new('Missing the required parameter `replace_document_request` when calling `update_partial`') unless replace_document_request
+      raise ApiValueError, 'Missing the required parameter `index` when calling `update_partial`' unless index
+      raise ApiValueError, 'Missing the required parameter `id` when calling `update_partial`' unless id
+      unless replace_document_request
+        raise ApiValueError, 'Missing the required parameter `replace_document_request` when calling `update_partial`'
+      end
 
       # Set header parameters
       header_params = {}
@@ -233,14 +235,12 @@ module Manticoresearch
       json_replace_document_request = replace_document_request.to_json
 
       # Call the API
-      response = @api_client.call_api(
+      @api_client.call_api(
         "/#{index}/_update/#{id}",
         'POST',
         header_params: header_params,
         body: json_replace_document_request
       )
-
-      return response
     end
   end
 end

@@ -14,7 +14,7 @@ module Manticoresearch
     # Executes an SQL query.
     # @param body [String] The SQL query to execute.
     # @param raw_response [Boolean, nil] Controls the format of the response.
-    # @return [JSON, Array<JSON>] The response from the API.
+    # @return [Hash, Array<Hash>] The response from the API.
     def sql(body, raw_response = nil)
       sql_with_http_info(body, raw_response: raw_response)
     end
@@ -22,7 +22,7 @@ module Manticoresearch
     # Executes an SQL query with HTTP info.
     # @param body [String] The SQL query to execute.
     # @param raw_response [Boolean, nil] Controls the format of the response.
-    # @return [JSON, Array<JSON>] The response from the API.
+    # @return [Hash, Array<Hash>] The response from the API.
     def sql_with_http_info(body, raw_response: nil)
       # Ensure the 'body' parameter is provided
       raise ApiValueError, 'Missing the required parameter `body` when calling `sql`' unless body
@@ -58,9 +58,6 @@ module Manticoresearch
         header_params: header_params,
         body: body_params
       )
-
-      # Output response information for debugging
-      puts "Response: #{response}"
 
       # Control the return format based on 'raw_response'
       raw_response == false ? [response] : response

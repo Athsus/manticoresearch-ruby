@@ -22,17 +22,23 @@ module Manticoresearch
       @default_headers[options[:header_name]] = options[:header_value]
     end
 
+    # call the api
+    # @param resource_path [String] The path to the API endpoint.
+    # @param method [String] The HTTP method to use.
+    # @param options [Hash] Additional options for the request.
+    # @return [Hash] The parsed JSON response from the API.
     def call_api(resource_path, method, options = {})
       headers = prepare_headers(options[:header_params])
       full_url = build_full_url(resource_path, options[:path_params])
       response = RESTClientObject.new(@configuration).request(
         method, full_url, query_params: options[:query_params], headers: headers, body: options[:body]
       )
+      # puts "call_api response, code is  #{response.status}, data is #{response.data}, headers is #{response.headers}"
       if response.status < 200 || response.status >= 300
         error_message = extract_error_message(response)
         raise Manticoresearch::ApiException.new(error_message, response.status)
       end
-      deserialize(response.data, options[:response_type])
+      JSON.parse(response.data)
     end
 
     # Select the appropriate Accept header
@@ -76,22 +82,6 @@ module Manticoresearch
 
     def deserialize(data, _response_type = nil)
       JSON.parse(data)
-    end
-
-    def get_resp(url, headers = nil, query_params = nil)
-      call_api(url, 'GET', nil, query_params, headers)
-    end
-
-    def post_resp(url, headers = nil, body = nil)
-      call_api(url, 'POST', nil, nil, headers, body)
-    end
-
-    def put_resp(url, headers = nil, body = nil)
-      call_api(url, 'PUT', nil, nil, headers, body)
-    end
-
-    def delete_resp(url, headers = nil, body = nil)
-      call_api(url, 'DELETE', nil, nil, headers, body)
     end
 
     def update_params_for_auth(headers, querys, auth_settings, request_auth = nil)

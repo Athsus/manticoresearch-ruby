@@ -2,15 +2,85 @@
 
 ## Installation
 
-TODO: Write installation instructions here
+Add this line to your application's Gemfile:
+
+```
+gem 'manticoresearch', git: 'https://github.com/Athsus/manticoresearch-ruby.git'
+```
 
 ## Usage
 
-TODO: Write usage instructions here
+This is an example of how to use the ManticoreSearch Ruby client to perform bulk indexing operations.
 
-## Development
+```ruby
+require 'manticoresearch'
 
-TODO: Write development instructions here
+configuration = Manticoresearch::Configuration.new
+client = Manticoresearch::ApiClient.new(configuration)
+index_api = Manticoresearch::IndexApi.new(client)
+
+# Create a new index
+index_api.create_index({ index: 'test_index' })
+
+# Insert a document
+index_api.insert({ index: 'test_index', doc: { title: 'Hello, World!', num: 1 } })
+
+# Perform a search
+search_api = Manticoresearch::SearchApi.new(client)
+search_results = search_api.search({ index: 'test_index', query: { match: { title: 'Hello' } } })
+
+# Perform a SQL query
+sql_api = Manticoresearch::UtilsApi.new(client)
+sql_results = sql_api.sql({ index: 'test_index', query: 'SELECT * FROM test_index' })
+
+# Delete a document
+index_api.delete({ index: 'test_index', query: { match: { title: 'Hello' } } })
+
+# bulk insert multiple documents
+docs = [
+    {
+        insert: {
+            index: 'test_index',
+            doc: {
+                title: 'test1',
+                num: 1
+            }
+        }
+    },
+    {
+        insert: {
+            index: 'test_index',
+            doc: {
+                title: 'test2', 
+                num: 2
+            }
+        }
+    }
+]
+index_api.bulk(docs)
+```
+
+More examples can be found in the [examples](./examples) folder.
+
+## API Documentation
+
+All URIs are relative to `http://127.0.0.1:9308`.
+
+### API Endpoints
+
+| Class        | Method     | HTTP request                | Description                                      |
+|--------------|------------|-----------------------------|--------------------------------------------------|
+| **IndexApi** | `bulk`     | **POST** `/bulk`            | Bulk index operations                            |
+| **IndexApi** | `delete`   | **POST** `/delete`          | Delete a document in an index                    |
+| **IndexApi** | `insert`   | **POST** `/insert`          | Create a new document in an index                |
+| **IndexApi** | `replace`  | **POST** `/replace`         | Replace a document in an index                   |
+| **IndexApi** | `update`   | **POST** `/update`          | Update a document in an index                    |
+| **SearchApi** | `percolate` | **POST** `/pq/{index}/search` | Perform reverse search on a percolate index    |
+| **SearchApi** | `search`  | **POST** `/search`          | Performs a search on an index                    |
+| **UtilsApi** | `sql`      | **POST** `/sql`             | Perform SQL queries                              |
+
+
+For full API reference, please refer to the [Manticore Search Documentation](https://manual.manticoresearch.com).
 
 ## Contributing
 
